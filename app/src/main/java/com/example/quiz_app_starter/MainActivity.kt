@@ -1,6 +1,7 @@
 package com.example.quiz_app_starter
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,9 +25,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,12 +62,12 @@ fun MainMenuScreen(
 
     Column(
         modifier = modifier
-            .padding(16.dp),
+            .padding(16.dp).fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            painter = painterResource(id = R.drawable.bleh),
             contentDescription = "App Logo",
             modifier = Modifier.size(120.dp)
         )
@@ -79,7 +84,19 @@ fun MainMenuScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Test your knowledge!",
+            text = buildAnnotatedString {
+                append("Test your \n")
+                withStyle(SpanStyle(brush = Brush.horizontalGradient(
+                    0.3f to Color.Red,
+                    0.6f to Color.Red,
+                    0.6f to Color.Yellow,
+                    0.8f to Color.Yellow,
+                    0.8f to Color.Green,
+                    1.0f to Color.Green
+                ))){
+                    append("knowledge")
+                }
+            },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -111,7 +128,7 @@ fun MainMenuScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {},
+            onClick = { Log.d("App", "Play")},
             modifier = Modifier.fillMaxWidth(0.6f),
             shape = MaterialTheme.shapes.medium
         ) {
@@ -124,6 +141,6 @@ fun MainMenuScreen(
 @Composable
 fun MainMenuScreenPreview() {
     QuizappstarterTheme {
-        MainMenuScreen(3, Modifier)
+        MainMenuScreen(67, Modifier)
     }
 }
