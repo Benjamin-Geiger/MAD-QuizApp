@@ -35,6 +35,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.quiz_app_starter.presentation.QuestionScreen
 import com.example.quiz_app_starter.ui.theme.QuizappstarterTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,10 +45,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             QuizappstarterTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainMenuScreen(
-                        bestScore = 3,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    QuestionScreen()
+
+//                    MainMenuScreen(
+//                        bestScore = 3,
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
                 }
             }
         }
