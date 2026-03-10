@@ -2,6 +2,7 @@ package com.example.quiz_app_starter.presentation
 
 import android.R.attr.onClick
 import android.R.attr.text
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -23,15 +25,25 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.quiz_app_starter.MainMenuScreen
@@ -39,11 +51,28 @@ import com.example.quiz_app_starter.R
 import com.example.quiz_app_starter.model.Question
 import com.example.quiz_app_starter.model.getDummyQuestions
 import com.example.quiz_app_starter.ui.theme.QuizappstarterTheme
+import kotlinx.coroutines.delay
 import org.intellij.lang.annotations.JdkConstants
+import kotlin.concurrent.timer
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuestionIndex: Int = 0){
+
+    var selected: String by remember {
+        mutableStateOf("")
+    }
+    val timerDurationSeconds: Float = 3000f
+
+    //RAUS DAMIT
+    var countdown by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(timerDurationSeconds) {
+        while (countdown < timerDurationSeconds) {
+            delay(10)
+            countdown++
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -66,7 +95,7 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
         bottomBar = {
             Button(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp).navigationBarsPadding(),
-                onClick = {}){
+                onClick = {}) {
                 Text("Submit")
             }
         }
@@ -74,15 +103,23 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
 
         Column(
             modifier = Modifier.padding(innerPadding)) {
+            LinearProgressIndicator(modifier =
+                Modifier
+                .fillMaxWidth()
+                .padding(16.dp, 8.dp)
+                .size(0.dp, 140.dp),
+                progress = {countdown / timerDurationSeconds}
+            )
+
             Card(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp, 16.dp, 12.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Text(
-                    text = "hello your mom is a bla bla ich bin eine dumme sau und ficke deine mami",
+                    text = "hello",
                     modifier = Modifier
                         .padding(10.dp),
                 )
@@ -92,13 +129,18 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             )
-            { items(questions[1].answers) {
-                    answer -> AnswerCard(answer, false) {}
+            { items(questions[1].answers) { answer ->
+                AnswerCard(
+                    answer,
+                    isSelected = selected == answer,
+                    onSelect = {
+                       selected = answer
+                    }
+                )
+
             } }
 
         }
-
-        LinearProgressIndicator()
 
     }
 }
@@ -113,7 +155,7 @@ fun AnswerCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            MaterialTheme.colorScheme.primary
         )
     ){
         Row(
@@ -123,8 +165,15 @@ fun AnswerCard(
         ) {
             Text(answer)
             RadioButton(
+                colors = RadioButtonColors(
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.primary
+                ),
                 selected = isSelected,
                 onClick = onSelect
+
             )
         }
     }
