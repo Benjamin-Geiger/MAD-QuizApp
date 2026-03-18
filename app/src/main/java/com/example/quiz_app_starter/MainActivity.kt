@@ -1,7 +1,6 @@
 package com.example.quiz_app_starter
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,10 +31,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.quiz_app_starter.presentation.QuestionScreen
+import androidx.navigation.NavHostController
+import com.example.quiz_app_starter.navigation.Navigation
+import com.example.quiz_app_starter.navigation.Screen
 import com.example.quiz_app_starter.ui.theme.QuizappstarterTheme
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             QuizappstarterTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    QuestionScreen()
+                    Navigation(bestScore = 3, modifier = Modifier.padding(innerPadding))
 
 //                    MainMenuScreen(
 //                        bestScore = 3,
@@ -60,7 +60,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainMenuScreen(
     bestScore: Int = 0,
-    modifier: Modifier
+    modifier: Modifier,
+    navController: NavHostController
 ) {
 
     Column(
@@ -131,7 +132,7 @@ fun MainMenuScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { Log.d("App", "Play")},
+            onClick = {navController.navigate(Screen.QuestionScreen.route)},
             modifier = Modifier.fillMaxWidth(0.6f),
             shape = MaterialTheme.shapes.medium
         ) {
@@ -140,10 +141,10 @@ fun MainMenuScreen(
     }
 }
 
-@Preview(showBackground = true, name = "MainMenuPreview")
-@Composable
-fun MainMenuScreenPreview() {
-    QuizappstarterTheme {
-        MainMenuScreen(67, Modifier)
-    }
-}
+//@Preview(showBackground = true, name = "MainMenuPreview")
+//@Composable
+//fun MainMenuScreenPreview() {
+//    QuizappstarterTheme {
+//        MainMenuScreen(67, Modifier,)
+//    }
+//}

@@ -57,6 +57,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.compose.ui)
     ksp(libs.hilt.compiler)
     implementation(libs.gson)
     implementation(libs.room.runtime)

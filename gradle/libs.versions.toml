@@ -14,7 +14,8 @@ ksp = "2.0.0-1.0.21"
 room = "2.4.0"
 gson = "2.11.0"
 retrofit = "2.11.0"            # Retrofit version
-okhttp = "4.12.0"              # OkHttp version (compatible with Retrofit)
+okhttp = "4.12.0"
+ui = "1.10.5"              # OkHttp version (compatible with Retrofit)
 
 [libraries]
 # Retrofit core
@@ -48,6 +49,7 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 [plugins]
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

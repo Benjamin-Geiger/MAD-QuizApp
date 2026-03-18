@@ -1,8 +1,5 @@
 package com.example.quiz_app_starter.presentation
 
-import android.R.attr.onClick
-import android.R.attr.text
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,12 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -30,12 +24,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,29 +35,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.quiz_app_starter.MainMenuScreen
+import androidx.navigation.NavHostController
 import com.example.quiz_app_starter.R
 import com.example.quiz_app_starter.model.Question
 import com.example.quiz_app_starter.model.getDummyQuestions
+import com.example.quiz_app_starter.navigation.Screen
 import com.example.quiz_app_starter.ui.theme.QuizappstarterTheme
 import kotlinx.coroutines.delay
-import org.intellij.lang.annotations.JdkConstants
-import kotlin.concurrent.timer
 
+@Composable
+fun progressBar(countdown: Float, timerDurationSeconds: Float){
+    LinearProgressIndicator(modifier =
+        Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 8.dp)
+            .size(0.dp, 140.dp),
+        progress = {countdown / timerDurationSeconds}
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuestionIndex: Int = 0){
+fun QuestionScreen(
+    questions: List<Question> = getDummyQuestions(),
+    navController: NavHostController
+){
+
+    var currentQuestionIndex: Int = 0
 
     var selected: String by remember {
         mutableStateOf("")
     }
     val timerDurationSeconds: Float = 3000f
 
-    //RAUS DAMIT
     var countdown by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(timerDurationSeconds) {
         while (countdown < timerDurationSeconds) {
@@ -82,7 +86,7 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
                 ),
                 title = {Text("QuizApp")},
                 actions = {
-                    IconButton(onClick = {}){
+                    IconButton(onClick = { navController.popBackStack() }){
                         Image(
                             painter = painterResource(id = R.drawable.leave),
                             contentDescription = "Leave",
@@ -95,7 +99,12 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
         bottomBar = {
             Button(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp).navigationBarsPadding(),
-                onClick = {}) {
+                onClick = {if (currentQuestionIndex < questions.size - 1) {
+                    currentQuestionIndex++
+                } else {
+                    navController.navigate(Screen.MainScreen.route)
+                }
+                }) {
                 Text("Submit")
             }
         }
@@ -103,13 +112,7 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
 
         Column(
             modifier = Modifier.padding(innerPadding)) {
-            LinearProgressIndicator(modifier =
-                Modifier
-                .fillMaxWidth()
-                .padding(16.dp, 8.dp)
-                .size(0.dp, 140.dp),
-                progress = {countdown / timerDurationSeconds}
-            )
+            progressBar(countdown, timerDurationSeconds)
 
             Card(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp, 16.dp, 12.dp),
@@ -119,7 +122,7 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
                 )
             ) {
                 Text(
-                    text = "hello",
+                    text = questions[currentQuestionIndex].question,
                     modifier = Modifier
                         .padding(10.dp),
                 )
@@ -129,7 +132,7 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             )
-            { items(questions[1].answers) { answer ->
+            { items(questions[currentQuestionIndex].answers) { answer ->
                 AnswerCard(
                     answer,
                     isSelected = selected == answer,
@@ -137,11 +140,8 @@ fun QuestionScreen(questions: List<Question> = getDummyQuestions(), currentQuest
                        selected = answer
                     }
                 )
-
             } }
-
         }
-
     }
 }
 
@@ -176,13 +176,5 @@ fun AnswerCard(
 
             )
         }
-    }
-}
-
-@Preview(showBackground = true, name = "QuestionScreePreview")
-@Composable
-fun QuestionScreenPreview() {
-    QuizappstarterTheme {
-        QuestionScreen()
     }
 }
