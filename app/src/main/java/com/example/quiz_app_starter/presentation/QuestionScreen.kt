@@ -27,35 +27,29 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.quiz_app_starter.R
-import com.example.quiz_app_starter.model.Question
 import com.example.quiz_app_starter.model.QuestionViewModel
-import com.example.quiz_app_starter.model.getDummyQuestions
 import com.example.quiz_app_starter.navigation.Screen
-import kotlinx.coroutines.delay
 
 @Composable
-fun progressBar(countdown: Float, timerDurationSeconds: Float){
+fun progressBar(progress: Float){
     LinearProgressIndicator(modifier =
         Modifier
             .fillMaxWidth()
             .padding(16.dp, 8.dp)
-            .size(0.dp, 140.dp),
-        progress = {countdown / timerDurationSeconds}
+            .size(0.0.dp, 140.0.dp),
+        progress = { progress }
     )
 }
 
@@ -72,9 +66,7 @@ fun AlertDialogExample(
         text = {
             Text(text = dialogText)
         },
-        onDismissRequest = {
-
-        },
+        onDismissRequest = { },
         confirmButton = {
             TextButton(
                 onClick = {
@@ -90,51 +82,33 @@ fun AlertDialogExample(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionScreen(
-    viewModel: QuestionViewModel = QuestionViewModel(getDummyQuestions()),
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: QuestionViewModel = viewModel()
 ){
+    val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsState()
     val questions = uiState.questionList
 
-    var correctAnswerCounter = uiState.pointsAchieved
-    var dialogTextCool = uiState.resultDialog
-    var currentQuestionIndex = uiState.currentQuestionIndex
-    var dialogMessage = uiState.dialogMessage
-    var showDialog by remember { mutableStateOf(false) }
-
-    var selected: String by remember {
-        mutableStateOf("")
-    }
-    val timerDurationSeconds: Float = 3000f
-
-    var countdown by remember { mutableFloatStateOf(0f) }
-
-    // Use currentQuestionIndex as key so timer restarts every question
-    LaunchedEffect(currentQuestionIndex) {
-        countdown = 0f
-        while (countdown < timerDurationSeconds) {
-            delay(10)
-            countdown++
-        }
-        if (countdown >= timerDurationSeconds && !showDialog) {
-            dialogTextCool = "DEINE MAMA IS IN DEN MCDONALDS GEROLLT"
-            showDialog = true
+    DisposableEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(viewModel)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(viewModel)
         }
     }
 
-    if (showDialog) {
+    if (questions.isEmpty()) return
+
+    val currentQuestion = questions[uiState.currentQuestionIndex]
+
+    if (uiState.showDialog) {
         AlertDialogExample(
             onConfirmation = {
-                if (currentQuestionIndex < questions.size - 1) {
-                    currentQuestionIndex++
-                    selected = ""
-                    showDialog = false
-                } else {
-                    navController.navigate(Screen.EndScreen.route + "/$correctAnswerCounter")
+                viewModel.onNextClicked { finalPoints ->
+                    navController.navigate(Screen.EndScreen.route + "/$finalPoints")
                 }
             },
-            dialogTitle = "Leck Eier",
-            dialogText = dialogTextCool
+            dialogTitle = "Quiz Result",
+            dialogText = uiState.resultDialog
         )
     }
 
@@ -159,14 +133,9 @@ fun QuestionScreen(
         bottomBar = {
             Button(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp).navigationBarsPadding(),
+                enabled = uiState.selectedAnswer.isNotEmpty(),
                 onClick = {
-                    if (selected == questions[currentQuestionIndex].correctAnswer) {
-                        dialogTextCool = "Corretto!"
-                        correctAnswerCounter++
-                    } else {
-                        dialogTextCool = "Falso!"
-                    }
-                    showDialog = true
+                    viewModel.submitAnswer()
                 }) {
                 Text("Submit")
             }
@@ -175,7 +144,7 @@ fun QuestionScreen(
 
         Column(
             modifier = Modifier.padding(innerPadding)) {
-            progressBar(countdown, timerDurationSeconds)
+            progressBar(uiState.timerProgress)
 
             Card(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp, 16.dp, 12.dp),
@@ -185,7 +154,7 @@ fun QuestionScreen(
                 )
             ) {
                 Text(
-                    text = questions[currentQuestionIndex].question,
+                    text = currentQuestion.question,
                     modifier = Modifier
                         .padding(10.dp),
                 )
@@ -195,12 +164,12 @@ fun QuestionScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             )
-            { items(questions[currentQuestionIndex].answers) { answer ->
+            { items(currentQuestion.answers) { answer ->
                 AnswerCard(
                     answer,
-                    isSelected = selected == answer,
+                    isSelected = uiState.selectedAnswer == answer,
                     onSelect = {
-                       selected = answer
+                       viewModel.onAnswerSelected(answer)
                     }
                 )
             } }
