@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.quiz_app_starter.R
 import com.example.quiz_app_starter.model.Question
+import com.example.quiz_app_starter.model.QuestionViewModel
 import com.example.quiz_app_starter.model.getDummyQuestions
 import com.example.quiz_app_starter.navigation.Screen
 import kotlinx.coroutines.delay
@@ -88,12 +90,16 @@ fun AlertDialogExample(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionScreen(
-    questions: List<Question> = getDummyQuestions(),
+    viewModel: QuestionViewModel = QuestionViewModel(getDummyQuestions()),
     navController: NavHostController
 ){
-    var correctAnswerCounter by remember {mutableIntStateOf(0)}
-    var dialogTextCool by remember { mutableStateOf("") }
-    var currentQuestionIndex by remember { mutableIntStateOf(0) }
+    val uiState by viewModel.uiState.collectAsState()
+    val questions = uiState.questionList
+
+    var correctAnswerCounter = uiState.pointsAchieved
+    var dialogTextCool = uiState.resultDialog
+    var currentQuestionIndex = uiState.currentQuestionIndex
+    var dialogMessage = uiState.dialogMessage
     var showDialog by remember { mutableStateOf(false) }
 
     var selected: String by remember {
