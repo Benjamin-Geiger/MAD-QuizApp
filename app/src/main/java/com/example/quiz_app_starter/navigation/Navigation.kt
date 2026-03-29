@@ -2,16 +2,19 @@ package com.example.quiz_app_starter.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.quiz_app_starter.MainMenuScreen
+import com.example.quiz_app_starter.presentation.FinishScreen
 import com.example.quiz_app_starter.presentation.QuestionScreen
 
 sealed class Screen(val route: String) {
-    object MainScreen : Screen("main_screen");
-    object QuestionScreen : Screen("question_screen");
-    object EndScreen : Screen("end_screen");
+    object MainScreen : Screen("main_screen")
+    object QuestionScreen : Screen("question_screen")
+    object EndScreen : Screen("end_screen")
 }
 
 @Composable
@@ -25,7 +28,12 @@ fun Navigation(bestScore: Int, modifier: Modifier) {
         composable(Screen.QuestionScreen.route) {
             QuestionScreen(navController = navController)
         }
-        composable(Screen.EndScreen.route) {
-            QuestionScreen(navController = navController)
+        composable(
+            route = Screen.EndScreen.route + "/{score}",
+            arguments = listOf(navArgument("score") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val score = backStackEntry.arguments?.getInt("score") ?: 0
+            FinishScreen(score = score, navController = navController)
         }
-    }}
+    }
+}

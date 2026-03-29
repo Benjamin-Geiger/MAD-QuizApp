@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,12 +23,14 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,14 +38,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.quiz_app_starter.R
 import com.example.quiz_app_starter.model.Question
 import com.example.quiz_app_starter.model.getDummyQuestions
 import com.example.quiz_app_starter.navigation.Screen
-import com.example.quiz_app_starter.ui.theme.QuizappstarterTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -56,14 +57,44 @@ fun progressBar(countdown: Float, timerDurationSeconds: Float){
     )
 }
 
+@Composable
+fun AlertDialogExample(
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+) {
+    AlertDialog(
+        title = {
+            Text(text = dialogTitle)
+        },
+        text = {
+            Text(text = dialogText)
+        },
+        onDismissRequest = {
+
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Next")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionScreen(
     questions: List<Question> = getDummyQuestions(),
     navController: NavHostController
 ){
-
-    var currentQuestionIndex: Int = 0
+    var correctAnswerCounter by remember {mutableIntStateOf(0)}
+    var dialogTextCool by remember { mutableStateOf("") }
+    var currentQuestionIndex by remember { mutableIntStateOf(0) }
+    var showDialog by remember { mutableStateOf(false) }
 
     var selected: String by remember {
         mutableStateOf("")
@@ -71,11 +102,34 @@ fun QuestionScreen(
     val timerDurationSeconds: Float = 3000f
 
     var countdown by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(timerDurationSeconds) {
+
+    // Use currentQuestionIndex as key so timer restarts every question
+    LaunchedEffect(currentQuestionIndex) {
+        countdown = 0f
         while (countdown < timerDurationSeconds) {
             delay(10)
             countdown++
         }
+        if (countdown >= timerDurationSeconds && !showDialog) {
+            dialogTextCool = "DEINE MAMA IS IN DEN MCDONALDS GEROLLT"
+            showDialog = true
+        }
+    }
+
+    if (showDialog) {
+        AlertDialogExample(
+            onConfirmation = {
+                if (currentQuestionIndex < questions.size - 1) {
+                    currentQuestionIndex++
+                    selected = ""
+                    showDialog = false
+                } else {
+                    navController.navigate(Screen.EndScreen.route + "/$correctAnswerCounter")
+                }
+            },
+            dialogTitle = "Leck Eier",
+            dialogText = dialogTextCool
+        )
     }
 
     Scaffold(
@@ -99,11 +153,14 @@ fun QuestionScreen(
         bottomBar = {
             Button(
                 modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp).navigationBarsPadding(),
-                onClick = {if (currentQuestionIndex < questions.size - 1) {
-                    currentQuestionIndex++
-                } else {
-                    navController.navigate(Screen.MainScreen.route)
-                }
+                onClick = {
+                    if (selected == questions[currentQuestionIndex].correctAnswer) {
+                        dialogTextCool = "Corretto!"
+                        correctAnswerCounter++
+                    } else {
+                        dialogTextCool = "Falso!"
+                    }
+                    showDialog = true
                 }) {
                 Text("Submit")
             }
