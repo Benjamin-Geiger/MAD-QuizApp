@@ -1,7 +1,12 @@
 package com.example.quiz_app_starter.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class Question(
     val category: String,
+    @PrimaryKey
     val id: String,
     val correctAnswer: String,
     val answers: List<String>,
