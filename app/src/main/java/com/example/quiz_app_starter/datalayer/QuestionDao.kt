@@ -1,9 +1,10 @@
-package com.example.quiz_app_starter.model
+package com.example.quiz_app_starter.datalayer
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.quiz_app_starter.model.Question
 import kotlinx.coroutines.flow.Flow
 
 @Dao

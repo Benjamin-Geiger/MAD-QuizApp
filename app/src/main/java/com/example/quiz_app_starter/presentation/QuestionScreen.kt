@@ -33,12 +33,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.quiz_app_starter.R
+import com.example.quiz_app_starter.datalayer.Api
+import com.example.quiz_app_starter.datalayer.QuestionRepository
+import com.example.quiz_app_starter.datalayer.QuizDB
 import com.example.quiz_app_starter.model.QuestionViewModel
 import com.example.quiz_app_starter.navigation.Screen
 
@@ -82,9 +88,20 @@ fun AlertDialogExample(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionScreen(
-    navController: NavHostController,
-    viewModel: QuestionViewModel = viewModel()
+    navController: NavHostController
 ){
+    val context = LocalContext.current
+    val dao = QuizDB.getDatabase(context).questionDao
+    val repo = QuestionRepository(questionDao = dao)
+    
+    val viewModel: QuestionViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return QuestionViewModel(repo) as T
+            }
+        }
+    )
+
     val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsState()
     val questions = uiState.questionList

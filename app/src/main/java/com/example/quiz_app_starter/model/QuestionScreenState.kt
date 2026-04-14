@@ -5,8 +5,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewModelScope
+import com.example.quiz_app_starter.datalayer.QuestionRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +26,24 @@ data class QuestionScreenState(
     val showDialog: Boolean = false
 )
 
-class QuestionViewModel(private val questions: List<Question> = getDummyQuestions()) : ViewModel(), DefaultLifecycleObserver {
+class QuestionViewModel(private val repository: QuestionRepository) : ViewModel(), DefaultLifecycleObserver {
     private val _uiState = MutableStateFlow(
-        QuestionScreenState(questionList = questions)
+        QuestionScreenState()
     )
 
-
+    private fun fetchQuestions() {
+        viewModelScope.launch {
+            repository.refreshQuestions() // Fetch from API first
+            repository.getQuestions().collect { questions ->
+                if (questions.isNotEmpty()) {
+                    _uiState.update { it.copy(
+                        questionList = questions,
+                        currentQuestionIndex = 0
+                    ) }
+                }
+            }
+        }
+    }
 
     override fun onPause(owner: LifecycleOwner) {
         pauseTimer()
@@ -46,6 +60,7 @@ class QuestionViewModel(private val questions: List<Question> = getDummyQuestion
     private var isTimerRunning: Boolean = true
 
     init {
+        fetchQuestions()
         startTimer()
     }
 
